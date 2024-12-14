@@ -4,35 +4,236 @@ on:
     branches: [ master ]
 jobs:
   build:
-    name: Autograding
+    name: Build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Golang
+        uses: actions/setup-go@v5
         with:
-          fetch-depth: 0
+          go-version: '1.23.1'
 
-      - uses: docker/setup-buildx-action@v2
+      - name: Install app dependencies
+        run: go mod tidy
 
-      # TODO build, publish to docker hub, deploy to k8s
+      - name: Build gateway
+        run: go build -v ./cmd/gateway/main.go
+
+      - name: Build cars service
+        run: go build -v ./cmd/car/main.go
+
+      - name: Build rental service
+        run: go build -v ./cmd/car/main.go
+
+      - name: Build payment service
+        run: go build -v ./cmd/car/main.go
+
+  unit_test:
+    name: Unit test
+    needs: [ build ]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Lint app
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: v1.60
+
+      - name: Run unit tests for gateway
+        run: ALLURE_OUTPUT_PATH=../../ go test -v ./internal/gateway
+
+      - name: Upload test reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports
+          path: allure-results
+
+  publish_test_report:
+    needs: [ unit_test ]
+    name: Publish test report
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download current test reports
+        uses: actions/download-artifact@v4
+        with:
+          name: test-reports
+          path: allure-results
+
+      - name: Load test report history
+        uses: actions/checkout@v3
+        if: always()
+        continue-on-error: true
+        with:
+          ref: gh-pages
+          path: gh-pages
+
+      - name: Build test report
+        uses: simple-elf/allure-report-action@v1.7
+        if: always()
+        with:
+          gh_pages: gh-pages
+          allure_history: allure-history
+          allure_results: allure-results
+          keep_reports: 50
+
+      - name: Publish test report
+        uses: peaceiris/actions-gh-pages@v3
+        if: always()
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: allure-history
+
+  api_test:
+    needs: [ unit_test ]
+    name: API test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU for Docker build
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build images
+        timeout-minutes: 10
+        run: PIPELINE_ID=${{ github.run_number }} docker compose build
+
+      - name: Run containers
+        timeout-minutes: 5
+        run: |
+          docker compose up -d
+          ./scripts/wait-script.sh
+        env:
+          WAIT_PORTS: 8080,8070,8060,8050
 
       - name: Run API Tests
         uses: matt-ball/newman-action@master
         with:
-          collection: <variant>/postman/collection.json
-          environment: <variant>/postman/environment.json
+          collection: postman/collection.json
+          environment: postman/environment.json
           delayRequest: 100
           reporters: '[ "cli" ]'
 
-      - uses: education/autograding@v1
-        id: autograder
-        continue-on-error: true
+      - name: Cat gateway logs
+        if: failure()
+        run: docker logs gateway
 
-      - name: Github auto grader mark
-        uses: Romanow/google-sheet-autograder-marker@v1.0
+      - name: Cat retryer logs
+        if: failure()
+        run: docker logs retryer
+
+      - name: Cat cars-api logs
+        if: failure()
+        run: docker logs cars-api
+
+      - name: Cat rental-api logs
+        if: failure()
+        run: docker logs rental-api
+
+      - name: Cat payment-api logs
+        if: failure()
+        run: docker logs payment-api
+
+      - name: Shutdown test environment
+        if: always()
+        timeout-minutes: 10
+        run: docker compose down --volumes
+
+  push_images:
+    needs: [ api_test ]
+    name: Push images
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU for Docker build
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build images
+        timeout-minutes: 10
+        run: docker compose build
+
+      - name: Login to docker registry
+        run: docker login -u ${{ secrets.CLOUD_RU_LOGIN }} -p ${{ secrets.CLOUD_RU_PASSWORD }} ds-labs.cr.cloud.ru
+
+      - name: Tag images
+        run: |
+          docker tag inspirate789/ds-cars-api:latest ds-labs.cr.cloud.ru/ds-cars-api:latest
+          docker tag inspirate789/ds-gateway:latest ds-labs.cr.cloud.ru/ds-gateway:latest
+          docker tag inspirate789/ds-rental-api:latest ds-labs.cr.cloud.ru/ds-rental-api:latest
+          docker tag inspirate789/ds-payment-api:latest ds-labs.cr.cloud.ru/ds-payment-api:latest
+          docker tag inspirate789/ds-retryer:latest ds-labs.cr.cloud.ru/ds-retryer:latest
+
+      - name: Push images
+        timeout-minutes: 10
+        run: |
+          docker push ds-labs.cr.cloud.ru/ds-cars-api:latest
+          docker push ds-labs.cr.cloud.ru/ds-gateway:latest
+          docker push ds-labs.cr.cloud.ru/ds-rental-api:latest
+          docker push ds-labs.cr.cloud.ru/ds-payment-api:latest
+          docker push ds-labs.cr.cloud.ru/ds-retryer:latest
+
+  deploy:
+    needs: [ push_images ]
+    name: Deploy to k8s
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install cloudlogin (for cloud.ru)
+        run: |
+          wget https://github.com/cloud-ru-tech/cloudlogin/releases/download/v1.0.0/cloudlogin_Linux_amd64.tar.gz
+          tar -xzf cloudlogin_Linux_amd64.tar.gz
+          mv cloudlogin /usr/local/bin/
+
+      - name: Deploy
+        uses: WyriHaximus/github-action-helm3@v3
         with:
-          google_token: ${{secrets.GOOGLE_API_KEY}}
-          sheet_id: "1xkgjUX6Qmk7rdJG-QPOToav-HWWtthJjnShIKnw3oIY"
-          homework_number: 5
-          user_column: 'D'
-          column_offset: 'F'
-          mark: "'+"
+          exec: |
+            helm upgrade postgres oci://registry-1.docker.io/bitnamicharts/postgresql -f deployments/postgres/values.yaml --install --wait --atomic
+            helm upgrade kafka oci://registry-1.docker.io/bitnamicharts/kafka -f deployments/kafka/values.yaml --install --wait --atomic
+            helm repo add gruntwork https://helmcharts.gruntwork.io
+            helm repo update
+            helm upgrade cars-api gruntwork/k8s-service -f deployments/api-services/cars.yaml --install --wait --atomic
+            helm upgrade rental-api gruntwork/k8s-service -f deployments/api-services/rental.yaml --install --wait --atomic
+            helm upgrade payment-api gruntwork/k8s-service -f deployments/api-services/payment.yaml --install --wait --atomic
+            helm upgrade gateway gruntwork/k8s-service -f deployments/api-services/gateway.yaml --install --wait --atomic
+          kubeconfig: '${{ secrets.KUBECONFIG }}'
+          overrule_existing_kubeconfig: "true"
+
+  autograding:
+    needs: [ deploy ]
+    name: Autograding
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Add app URL to Postman environment
+        uses: sergeysova/jq-action@v2
+        id: version
+        with:
+          cmd: >-
+            jq '.values[0].value = "http://${{ secrets.PROD_HOST }}:${{ secrets.PROD_PORT }}"'
+            < postman/environment.json > out.tmp &&
+            mv out.tmp postman/environment.json
+
+      - name: Autograding
+        uses: education/autograding@v1
+        continue-on-error: true
