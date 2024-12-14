@@ -4,10 +4,11 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"github.com/Inspirate789/ds-lab2/internal/models"
-	"github.com/Inspirate789/ds-lab2/pkg/sqlxutils"
-	"github.com/jmoiron/sqlx"
 	"log/slog"
+
+	"github.com/Inspirate789/ds-lab5/internal/models"
+	"github.com/Inspirate789/ds-lab5/pkg/sqlxutils"
+	"github.com/jmoiron/sqlx"
 )
 
 type SqlxRepository struct {

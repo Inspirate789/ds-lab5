@@ -3,22 +3,23 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/Inspirate789/ds-lab2/internal/car/delivery"
-	"github.com/Inspirate789/ds-lab2/internal/car/repository"
-	"github.com/Inspirate789/ds-lab2/internal/car/usecase"
-	"github.com/Inspirate789/ds-lab2/internal/pkg/app"
-	"github.com/Inspirate789/ds-lab2/pkg/migrations"
+	"log/slog"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
+
+	"github.com/Inspirate789/ds-lab5/internal/car/delivery"
+	"github.com/Inspirate789/ds-lab5/internal/car/repository"
+	"github.com/Inspirate789/ds-lab5/internal/car/usecase"
+	"github.com/Inspirate789/ds-lab5/internal/pkg/app"
+	"github.com/Inspirate789/ds-lab5/pkg/migrations"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 	"github.com/lmittmann/tint"
 	"github.com/spf13/pflag"
-	"log/slog"
-	"os"
-	"os/signal"
-	"syscall"
-	"time"
 )
 
 type WebApp interface {

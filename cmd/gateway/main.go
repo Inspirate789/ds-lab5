@@ -3,21 +3,22 @@ package main
 import (
 	"context"
 	"fmt"
-	carAPI "github.com/Inspirate789/ds-lab2/internal/car/api"
-	"github.com/Inspirate789/ds-lab2/internal/gateway"
-	paymentAPI "github.com/Inspirate789/ds-lab2/internal/payment/api"
-	"github.com/Inspirate789/ds-lab2/internal/pkg/app"
-	rentalAPI "github.com/Inspirate789/ds-lab2/internal/rental/api"
-	"github.com/Inspirate789/ds-lab2/pkg/retryer"
-	"github.com/lmittmann/tint"
-	"github.com/segmentio/kafka-go"
-	"github.com/spf13/pflag"
 	"log/slog"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
+
+	carAPI "github.com/Inspirate789/ds-lab5/internal/car/api"
+	"github.com/Inspirate789/ds-lab5/internal/gateway"
+	paymentAPI "github.com/Inspirate789/ds-lab5/internal/payment/api"
+	"github.com/Inspirate789/ds-lab5/internal/pkg/app"
+	rentalAPI "github.com/Inspirate789/ds-lab5/internal/rental/api"
+	"github.com/Inspirate789/ds-lab5/pkg/retryer"
+	"github.com/lmittmann/tint"
+	"github.com/segmentio/kafka-go"
+	"github.com/spf13/pflag"
 )
 
 type WebApp interface {

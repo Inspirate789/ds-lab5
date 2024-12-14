@@ -1,6 +1,6 @@
 services:
   postgres:
-    image: postgres:17
+    image: ds-labs.cr.cloud.ru/postgres # postgres:17
     container_name: postgres
     restart: on-failure
     environment:
@@ -13,7 +13,7 @@ services:
     ports:
       - "5432:5432"
   kafka:
-    image: docker.io/bitnami/kafka:3.8
+    image: ds-labs.cr.cloud.ru/kafka # docker.io/bitnami/kafka:3.8
     container_name: kafka
     environment:
       - KAFKA_CFG_NODE_ID=0
@@ -40,7 +40,7 @@ services:
         MODE: without_migrations
       platforms:
         - "linux/amd64"
-    image: inspirate789/ds-retryer:latest
+    image: ds-labs.cr.cloud.ru/ds-retryer:latest
     restart: always
   gateway:
     container_name: gateway
@@ -53,7 +53,7 @@ services:
         MODE: without_migrations
       platforms:
         - "linux/amd64"
-    image: inspirate789/ds-gateway:latest
+    image: ds-labs.cr.cloud.ru/ds-gateway:latest
     restart: always
     ports:
       - "8080:8080"
@@ -68,7 +68,7 @@ services:
         PIPELINE_ID: ${PIPELINE_ID:-0}
       platforms:
         - "linux/amd64"
-    image: inspirate789/ds-cars-api:latest
+    image: ds-labs.cr.cloud.ru/ds-cars-api:latest
     restart: always
     ports:
       - "8070:8080"
@@ -83,7 +83,7 @@ services:
         PIPELINE_ID: ${PIPELINE_ID:-0}
       platforms:
         - "linux/amd64"
-    image: inspirate789/ds-rental-api:latest
+    image: ds-labs.cr.cloud.ru/ds-rental-api:latest
     restart: always
     ports:
       - "8060:8080"
@@ -98,7 +98,7 @@ services:
         PIPELINE_ID: ${PIPELINE_ID:-0}
       platforms:
         - "linux/amd64"
-    image: inspirate789/ds-payment-api:latest
+    image: ds-labs.cr.cloud.ru/ds-payment-api:latest
     restart: always
     ports:
       - "8050:8080"

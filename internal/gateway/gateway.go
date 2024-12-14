@@ -2,18 +2,19 @@ package gateway
 
 import (
 	"context"
-	carErrors "github.com/Inspirate789/ds-lab2/internal/car/delivery/errors"
-	"github.com/Inspirate789/ds-lab2/internal/gateway/errors"
-	"github.com/Inspirate789/ds-lab2/internal/models"
-	paymentErrors "github.com/Inspirate789/ds-lab2/internal/payment/delivery/errors"
-	"github.com/Inspirate789/ds-lab2/internal/pkg/app"
-	rentalErrors "github.com/Inspirate789/ds-lab2/internal/rental/delivery/errors"
-	"github.com/gofiber/fiber/v2"
-	"go.uber.org/multierr"
 	"log/slog"
 	"math"
 	"strconv"
 	"time"
+
+	carErrors "github.com/Inspirate789/ds-lab5/internal/car/delivery/errors"
+	"github.com/Inspirate789/ds-lab5/internal/gateway/errors"
+	"github.com/Inspirate789/ds-lab5/internal/models"
+	paymentErrors "github.com/Inspirate789/ds-lab5/internal/payment/delivery/errors"
+	"github.com/Inspirate789/ds-lab5/internal/pkg/app"
+	rentalErrors "github.com/Inspirate789/ds-lab5/internal/rental/delivery/errors"
+	"github.com/gofiber/fiber/v2"
+	"go.uber.org/multierr"
 )
 
 type CarsAPI interface {

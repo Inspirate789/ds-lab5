@@ -1,4 +1,4 @@
-module github.com/Inspirate789/ds-lab2
+module github.com/Inspirate789/ds-lab5
 
 go 1.23.1
 

@@ -1,8 +1,9 @@
 package delivery
 
 import (
-	"github.com/Inspirate789/ds-lab2/internal/models"
 	"time"
+
+	"github.com/Inspirate789/ds-lab5/internal/models"
 )
 
 type RentalPropertiesDTO struct {

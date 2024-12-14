@@ -2,7 +2,8 @@ package gateway_test
 
 import (
 	"context"
-	"github.com/Inspirate789/ds-lab2/internal/models"
+
+	"github.com/Inspirate789/ds-lab5/internal/models"
 	"github.com/stretchr/testify/mock"
 )
 

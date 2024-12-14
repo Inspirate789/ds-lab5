@@ -2,12 +2,13 @@ package delivery
 
 import (
 	"context"
-	"github.com/Inspirate789/ds-lab2/internal/models"
-	"github.com/Inspirate789/ds-lab2/internal/payment/delivery/errors"
-	"github.com/Inspirate789/ds-lab2/internal/pkg/app"
-	"github.com/gofiber/fiber/v2"
 	"log/slog"
 	"strconv"
+
+	"github.com/Inspirate789/ds-lab5/internal/models"
+	"github.com/Inspirate789/ds-lab5/internal/payment/delivery/errors"
+	"github.com/Inspirate789/ds-lab5/internal/pkg/app"
+	"github.com/gofiber/fiber/v2"
 )
 
 type UseCase interface {

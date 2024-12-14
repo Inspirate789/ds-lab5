@@ -2,8 +2,9 @@ package usecase
 
 import (
 	"context"
-	"github.com/Inspirate789/ds-lab2/internal/models"
 	"log/slog"
+
+	"github.com/Inspirate789/ds-lab5/internal/models"
 )
 
 type Repository interface {

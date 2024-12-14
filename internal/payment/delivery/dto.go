@@ -1,6 +1,6 @@
 package delivery
 
-import "github.com/Inspirate789/ds-lab2/internal/models"
+import "github.com/Inspirate789/ds-lab5/internal/models"
 
 type PaymentDTO struct {
 	ID         int64                `json:"id"`

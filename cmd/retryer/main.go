@@ -2,16 +2,17 @@ package main
 
 import (
 	"context"
-	"github.com/Inspirate789/ds-lab2/internal/pkg/app"
-	"github.com/Inspirate789/ds-lab2/pkg/retryer"
-	"github.com/lmittmann/tint"
-	"github.com/segmentio/kafka-go"
-	"github.com/spf13/pflag"
 	"log/slog"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
+
+	"github.com/Inspirate789/ds-lab5/internal/pkg/app"
+	"github.com/Inspirate789/ds-lab5/pkg/retryer"
+	"github.com/lmittmann/tint"
+	"github.com/segmentio/kafka-go"
+	"github.com/spf13/pflag"
 )
 
 func main() {

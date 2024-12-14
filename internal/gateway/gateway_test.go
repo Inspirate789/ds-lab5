@@ -2,13 +2,14 @@ package gateway_test
 
 import (
 	"context"
-	"github.com/Inspirate789/ds-lab2/internal/gateway"
-	"github.com/ozontech/allure-go/pkg/allure"
-	"github.com/ozontech/allure-go/pkg/framework/provider"
-	"github.com/ozontech/allure-go/pkg/framework/suite"
 	"log/slog"
 	"os"
 	"testing"
+
+	"github.com/Inspirate789/ds-lab5/internal/gateway"
+	"github.com/ozontech/allure-go/pkg/allure"
+	"github.com/ozontech/allure-go/pkg/framework/provider"
+	"github.com/ozontech/allure-go/pkg/framework/suite"
 )
 
 type GatewaySuite struct {
