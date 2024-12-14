@@ -1,6 +1,6 @@
 services:
   postgres:
-    image: ds-labs.cr.cloud.ru/postgres # postgres:17
+    image: ds-labs.cr.cloud.ru/postgres:17.0.0-debian-12-r11 # postgres:17
     container_name: postgres
     restart: on-failure
     environment:
@@ -13,7 +13,7 @@ services:
     ports:
       - "5432:5432"
   kafka:
-    image: ds-labs.cr.cloud.ru/kafka # docker.io/bitnami/kafka:3.8
+    image: ds-labs.cr.cloud.ru/kafka:3.8.1-debian-12-r0 # docker.io/bitnami/kafka:3.8
     container_name: kafka
     environment:
       - KAFKA_CFG_NODE_ID=0

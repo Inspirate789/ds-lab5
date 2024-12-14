@@ -3,6 +3,8 @@ global:
   postgresql:
     auth:
       postgresPassword: "aboba"
+  security:
+    allowInsecureImages: true
 primary:
   initdb:
     scripts:
@@ -22,4 +24,5 @@ primary:
 image:
   registry: ds-labs.cr.cloud.ru
   repository: postgres
+  tag: 17.0.0-debian-12-r11
   debug: true

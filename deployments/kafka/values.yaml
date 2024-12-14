@@ -1,6 +1,10 @@
+global:
+  security:
+    allowInsecureImages: true
 image:
   registry: ds-labs.cr.cloud.ru
   repository: kafka
+  tag: 3.8.1-debian-12-r0
 extraInit: |
   kafka_conf_set "$KAFKA_CONFIG_FILE" "auto.create.topics.enable" "true"
 controller:
