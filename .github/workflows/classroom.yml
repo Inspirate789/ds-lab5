@@ -202,6 +202,7 @@ jobs:
             helm upgrade rental-api gruntwork/k8s-service -f deployments/api-services/rental.yaml --install --wait --atomic
             helm upgrade payment-api gruntwork/k8s-service -f deployments/api-services/payment.yaml --install --wait --atomic
             helm upgrade gateway gruntwork/k8s-service -f deployments/api-services/gateway.yaml --install --wait --atomic
+            helm upgrade retryer gruntwork/k8s-service -f deployments/api-services/retryer.yaml --install --wait --atomic
           kubeconfig: '${{ secrets.KUBECONFIG }}'
           overrule_existing_kubeconfig: "true"
 

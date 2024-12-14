@@ -1,0 +1,12 @@
+---
+applicationName: retryer
+
+containerImage:
+  repository: ds-labs.cr.cloud.ru/ds-retryer
+  tag: latest
+  pullPolicy: Always
+
+lifecycleHooks:
+  enabled: false
+
+replicaCount: 1

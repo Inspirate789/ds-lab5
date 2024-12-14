@@ -7,3 +7,4 @@ helm install rental-api gruntwork/k8s-service -f deployments/api-services/rental
 helm install payment-api gruntwork/k8s-service -f deployments/api-services/payment.yaml --wait
 # kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.8.1/deploy/static/provider/cloud/deploy.yaml
 helm install gateway gruntwork/k8s-service -f deployments/api-services/gateway.yaml --wait
+helm install retryer gruntwork/k8s-service -f deployments/api-services/retryer.yaml --wait
