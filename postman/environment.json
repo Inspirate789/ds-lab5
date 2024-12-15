@@ -4,32 +4,32 @@
   "values": [
     {
       "key": "serviceUrl",
-      "value": "",
+      "value": "http://gateway.default.svc.cluster.local",
       "enabled": true
     },
     {
       "key": "identityProviderUrl",
-      "value": "",
+      "value": "http://keycloak.default.svc.cluster.local/realms/ds-labs/protocol/openid-connect/token",
       "enabled": true
     },
     {
       "key": "username",
-      "value": "",
+      "value": "aboba",
       "enabled": true
     },
     {
       "key": "password",
-      "value": "",
+      "value": "aboba",
       "enabled": true
     },
     {
       "key": "clientId",
-      "value": "",
+      "value": "aboba",
       "enabled": true
     },
     {
       "key": "clientSecret",
-      "value": "",
+      "value": "RcF3DPXovTwMnHyh9VHKJKqopx1fBFwY",
       "enabled": true
     }
   ],

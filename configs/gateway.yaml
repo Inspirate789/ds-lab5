@@ -4,6 +4,7 @@ web:
   host:
   port: 8080
   pathPrefix: /api/v1
+  JWKsURL: http://k8s.orb.local:8080/realms/ds-labs/protocol/openid-connect/certs
 kafka:
   addresses:
     - kafka:9092

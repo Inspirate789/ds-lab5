@@ -2,15 +2,16 @@ package app
 
 import (
 	"context"
+	"log/slog"
+	"net"
+	"net/http"
+	"strings"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/pprof"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/pkg/errors"
 	slogfiber "github.com/samber/slog-fiber"
-	"log/slog"
-	"net"
-	"net/http"
-	"strings"
 )
 
 type HealthChecker interface {
@@ -18,7 +19,7 @@ type HealthChecker interface {
 }
 
 type Delivery interface {
-	HealthChecker
+	HealthCheck(ctx context.Context) error
 	AddHandlers(router fiber.Router)
 }
 
@@ -26,6 +27,7 @@ type WebConfig struct {
 	Host       string
 	Port       string
 	PathPrefix string
+	JWKsURL    string
 }
 
 type FiberApp struct {
@@ -49,7 +51,7 @@ func checkReadiness(delivery HealthChecker) func(ctx *fiber.Ctx) error {
 	}
 }
 
-func NewFiberApp(config WebConfig, delivery Delivery, logger *slog.Logger) *FiberApp {
+func NewFiberApp(config WebConfig, delivery Delivery, auth fiber.Handler, logger *slog.Logger) *FiberApp {
 	app := fiber.New(fiber.Config{
 		DisableStartupMessage: true,
 		ErrorHandler: func(ctx *fiber.Ctx, err error) error {
@@ -71,7 +73,13 @@ func NewFiberApp(config WebConfig, delivery Delivery, logger *slog.Logger) *Fibe
 
 	app.Get("/manage/health", checkReadiness(delivery))
 
-	delivery.AddHandlers(app.Group(config.PathPrefix))
+	api := app.Group(config.PathPrefix)
+
+	if auth != nil {
+		api.Use(auth)
+	}
+
+	delivery.AddHandlers(api)
 
 	return &FiberApp{
 		config: config,

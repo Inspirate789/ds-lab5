@@ -3,7 +3,9 @@ module github.com/Inspirate789/ds-lab5
 go 1.23.1
 
 require (
+	github.com/MicahParks/keyfunc v1.9.0
 	github.com/gofiber/fiber/v2 v2.52.5
+	github.com/golang-jwt/jwt/v4 v4.5.1
 	github.com/golang-migrate/migrate/v4 v4.18.1
 	github.com/google/uuid v1.6.0
 	github.com/hashicorp/go-multierror v1.1.1

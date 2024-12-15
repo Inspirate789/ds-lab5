@@ -25,7 +25,7 @@ type Client interface {
 }
 
 type RequestBacklog interface {
-	app.HealthChecker
+	HealthCheck(ctx context.Context) error
 	Push(ctx context.Context, req *http.Request) error
 }
 
@@ -125,6 +125,11 @@ func (api *CarsAPI) getCars(ctx context.Context, offset, limit uint64, showAll b
 		return nil, 0, err
 	}
 
+	err = app.AddAuth(ctx, req)
+	if err != nil {
+		return nil, 0, err
+	}
+
 	resp, err := api.client.Do(req)
 	if err != nil {
 		var DNSError *net.DNSError
@@ -175,6 +180,11 @@ func (api *CarsAPI) getCar(ctx context.Context, carUID string) (res models.Car, 
 	endpoint := api.baseURL + "/api/v1/cars/" + carUID
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, endpoint, nil)
+	if err != nil {
+		return models.Car{}, false, err
+	}
+
+	err = app.AddAuth(ctx, req)
 	if err != nil {
 		return models.Car{}, false, err
 	}
@@ -235,6 +245,11 @@ func (api *CarsAPI) LockCar(ctx context.Context, carUID string) (res models.Car,
 		return models.Car{}, false, false, err
 	}
 
+	err = app.AddAuth(ctx, req)
+	if err != nil {
+		return models.Car{}, false, false, err
+	}
+
 	resp, err := api.client.Do(req)
 	if err != nil {
 		var DNSError *net.DNSError
@@ -273,6 +288,11 @@ func (api *CarsAPI) UnlockCar(ctx context.Context, carUID string) (err error) {
 	endpoint := api.baseURL + "/api/v1/cars/" + carUID + "/lock"
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, endpoint, nil)
+	if err != nil {
+		return err
+	}
+
+	err = app.AddAuth(ctx, req)
 	if err != nil {
 		return err
 	}

@@ -4,6 +4,7 @@ web:
   host:
   port: 8080
   pathPrefix: /api/v1/payments
+  JWKsURL: http://k8s.orb.local:8080/realms/ds-labs/protocol/openid-connect/certs
 db:
   driverName: postgres
   connectionString: postgres://program:test@postgres:5432/payments?sslmode=disable

@@ -7,13 +7,12 @@ import (
 	"strconv"
 
 	"github.com/Inspirate789/ds-lab5/internal/models"
-	"github.com/Inspirate789/ds-lab5/internal/pkg/app"
 	"github.com/Inspirate789/ds-lab5/internal/rental/delivery/errors"
 	"github.com/gofiber/fiber/v2"
 )
 
 type UseCase interface {
-	app.HealthChecker
+	HealthCheck(ctx context.Context) error
 	GetUserRentals(ctx context.Context, username string, offset, limit uint64) (res []models.Rental, totalCount uint64, err error)
 	GetUserRental(ctx context.Context, rentalUID, username string) (res models.Rental, found, permitted bool, err error)
 	CreateRental(ctx context.Context, properties models.RentalProperties) (res models.Rental, err error)

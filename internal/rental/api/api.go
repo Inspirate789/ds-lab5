@@ -26,7 +26,7 @@ type Client interface {
 }
 
 type RequestBacklog interface {
-	app.HealthChecker
+	HealthCheck(ctx context.Context) error
 	Push(ctx context.Context, req *http.Request) error
 }
 
@@ -127,6 +127,11 @@ func (api *RentalsAPI) getUserRentals(ctx context.Context, username string, offs
 		return nil, 0, err
 	}
 
+	err = app.AddAuth(ctx, req)
+	if err != nil {
+		return nil, 0, err
+	}
+
 	req.Header.Set("X-User-Name", username)
 
 	resp, err := api.client.Do(req)
@@ -184,6 +189,11 @@ func (api *RentalsAPI) getUserRental(ctx context.Context, rentalUID, username st
 	endpoint := api.baseURL + "/api/v1/rentals/" + rentalUID
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, endpoint, nil)
+	if err != nil {
+		return models.Rental{}, false, false, err
+	}
+
+	err = app.AddAuth(ctx, req)
 	if err != nil {
 		return models.Rental{}, false, false, err
 	}
@@ -263,6 +273,11 @@ func (api *RentalsAPI) CreateRental(ctx context.Context, properties models.Renta
 		return models.Rental{}, err
 	}
 
+	err = app.AddAuth(ctx, req)
+	if err != nil {
+		return models.Rental{}, err
+	}
+
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := api.client.Do(req)
@@ -304,6 +319,11 @@ func (api *RentalsAPI) SetRentalStatus(ctx context.Context, rentalUID string, st
 	endpoint := api.baseURL + "/api/v1/rentals/" + rentalUID + "/status"
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPut, endpoint, bytes.NewBufferString(fmt.Sprint(status)))
+	if err != nil {
+		return false, err
+	}
+
+	err = app.AddAuth(ctx, req)
 	if err != nil {
 		return false, err
 	}

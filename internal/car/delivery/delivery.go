@@ -8,12 +8,11 @@ import (
 
 	"github.com/Inspirate789/ds-lab5/internal/car/delivery/errors"
 	"github.com/Inspirate789/ds-lab5/internal/models"
-	"github.com/Inspirate789/ds-lab5/internal/pkg/app"
 	"github.com/gofiber/fiber/v2"
 )
 
 type UseCase interface {
-	app.HealthChecker
+	HealthCheck(ctx context.Context) error
 	GetCars(ctx context.Context, offset, limit uint64, showAll bool) (res []models.Car, totalCount uint64, err error)
 	GetCar(ctx context.Context, carUID string) (res models.Car, found bool, err error)
 	LockCar(ctx context.Context, carUID string) (res models.Car, found, success bool, err error)

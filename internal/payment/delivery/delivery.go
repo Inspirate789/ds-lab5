@@ -7,12 +7,11 @@ import (
 
 	"github.com/Inspirate789/ds-lab5/internal/models"
 	"github.com/Inspirate789/ds-lab5/internal/payment/delivery/errors"
-	"github.com/Inspirate789/ds-lab5/internal/pkg/app"
 	"github.com/gofiber/fiber/v2"
 )
 
 type UseCase interface {
-	app.HealthChecker
+	HealthCheck(ctx context.Context) error
 	CreatePayment(ctx context.Context, price uint64) (res models.Payment, err error)
 	GetPayment(ctx context.Context, paymentUID string) (res models.Payment, found bool, err error)
 	SetPaymentStatus(ctx context.Context, paymentUID string, status models.PaymentStatus) (found bool, err error)

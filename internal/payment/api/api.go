@@ -27,7 +27,7 @@ type Client interface {
 }
 
 type RequestBacklog interface {
-	app.HealthChecker
+	HealthCheck(ctx context.Context) error
 	Push(ctx context.Context, req *http.Request) error
 }
 
@@ -111,6 +111,11 @@ func (api *PaymentsAPI) CreatePayment(ctx context.Context, price uint64) (res mo
 		return models.Payment{}, err
 	}
 
+	err = app.AddAuth(ctx, req)
+	if err != nil {
+		return models.Payment{}, err
+	}
+
 	resp, err := api.client.Do(req)
 	if err != nil {
 		var DNSError *net.DNSError
@@ -149,6 +154,11 @@ func (api *PaymentsAPI) SetPaymentStatus(ctx context.Context, paymentUID string,
 		return false, err
 	}
 
+	err = app.AddAuth(ctx, req)
+	if err != nil {
+		return false, err
+	}
+
 	resp, err := api.client.Do(req)
 	if err != nil {
 		var DNSError *net.DNSError
@@ -178,6 +188,11 @@ func (api *PaymentsAPI) getPayment(ctx context.Context, paymentUID string) (res 
 	endpoint := api.baseURL + "/api/v1/payments/" + paymentUID
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, endpoint, nil)
+	if err != nil {
+		return models.Payment{}, false, err
+	}
+
+	err = app.AddAuth(ctx, req)
 	if err != nil {
 		return models.Payment{}, false, err
 	}
