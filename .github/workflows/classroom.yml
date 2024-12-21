@@ -214,20 +214,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Add app URL to Postman environment
-        uses: sergeysova/jq-action@v2
-        id: version
-        with:
-          cmd: >-
-            jq '.values[0].value = "http://${{ secrets.PROD_HOST }}:${{ secrets.PROD_PORT }}"'
-            < postman/environment.json > out.tmp &&
-            mv out.tmp postman/environment.json
-            jq '.values[1].value = "${{ secrets.KEYCLOAK_URL }}"'
-            < postman/environment.json > out.tmp &&
-            mv out.tmp postman/environment.json
-            jq '.values[5].value = "${{ secrets.CLIENT_SECRET }}"'
-            < postman/environment.json > out.tmp &&
-            mv out.tmp postman/environment.json
+      - name: Setup Postman environment
+        run: |
+          echo '[
+            {"key": "serviceUrl", "value": "http://${{ secrets.PROD_HOST }}:${{ secrets.PROD_PORT }}"},
+            {"key": "tokenUrl", "value": "${{ secrets.KEYCLOAK_URL }}"},
+            {"key": "username", "value": "aboba"},
+            {"key": "password", "value": "aboba"},
+            {"key": "clientId", "value": "aboba"},
+            {"key": "clientSecret", "value": "${{ secrets.CLIENT_SECRET }}"}
+          ]' > postman/environment.json
 
       - name: Autograding
         uses: education/autograding@v1
