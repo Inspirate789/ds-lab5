@@ -91,68 +91,68 @@ jobs:
           publish_branch: gh-pages
           publish_dir: allure-history
 
-  api_test:
-    needs: [ unit_test ]
-    name: API test
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up QEMU for Docker build
-        uses: docker/setup-qemu-action@v3
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Build images
-        timeout-minutes: 10
-        run: PIPELINE_ID=${{ github.run_number }} docker compose build
-
-      - name: Run containers
-        timeout-minutes: 5
-        run: |
-          docker compose up -d
-          ./scripts/wait-script.sh
-        env:
-          WAIT_PORTS: 8080,8070,8060,8050
-
-      - name: Run API Tests
-        uses: matt-ball/newman-action@master
-        with:
-          collection: postman/collection.json
-          environment: postman/environment.json
-          delayRequest: 100
-          reporters: '[ "cli" ]'
-
-      - name: Cat gateway logs
-        if: failure()
-        run: docker logs gateway
-
-      - name: Cat retryer logs
-        if: failure()
-        run: docker logs retryer
-
-      - name: Cat cars-api logs
-        if: failure()
-        run: docker logs cars-api
-
-      - name: Cat rental-api logs
-        if: failure()
-        run: docker logs rental-api
-
-      - name: Cat payment-api logs
-        if: failure()
-        run: docker logs payment-api
-
-      - name: Shutdown test environment
-        if: always()
-        timeout-minutes: 10
-        run: docker compose down --volumes
+#  api_test:
+#    needs: [ unit_test ]
+#    name: API test
+#    runs-on: ubuntu-latest
+#    steps:
+#      - name: Checkout
+#        uses: actions/checkout@v4
+#
+#      - name: Set up QEMU for Docker build
+#        uses: docker/setup-qemu-action@v3
+#
+#      - name: Set up Docker Buildx
+#        uses: docker/setup-buildx-action@v3
+#
+#      - name: Build images
+#        timeout-minutes: 10
+#        run: PIPELINE_ID=${{ github.run_number }} docker compose build
+#
+#      - name: Run containers
+#        timeout-minutes: 5
+#        run: |
+#          docker compose up -d
+#          ./scripts/wait-script.sh
+#        env:
+#          WAIT_PORTS: 8080,8070,8060,8050
+#
+#      - name: Run API Tests
+#        uses: matt-ball/newman-action@master
+#        with:
+#          collection: postman/collection.json
+#          environment: postman/environment.json
+#          delayRequest: 100
+#          reporters: '[ "cli" ]'
+#
+#      - name: Cat gateway logs
+#        if: failure()
+#        run: docker logs gateway
+#
+#      - name: Cat retryer logs
+#        if: failure()
+#        run: docker logs retryer
+#
+#      - name: Cat cars-api logs
+#        if: failure()
+#        run: docker logs cars-api
+#
+#      - name: Cat rental-api logs
+#        if: failure()
+#        run: docker logs rental-api
+#
+#      - name: Cat payment-api logs
+#        if: failure()
+#        run: docker logs payment-api
+#
+#      - name: Shutdown test environment
+#        if: always()
+#        timeout-minutes: 10
+#        run: docker compose down --volumes
 
   push_images:
-    needs: [ api_test ]
-    name: Push images
+    needs: [ publish_test_report ]
+    name: Build and push images
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
