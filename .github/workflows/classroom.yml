@@ -218,7 +218,7 @@ jobs:
         run: |
           echo '[
             {"key": "serviceUrl", "value": "http://${{ secrets.PROD_HOST }}:${{ secrets.PROD_PORT }}"},
-            {"key": "tokenUrl", "value": "${{ secrets.KEYCLOAK_URL }}"},
+            {"key": "identityProviderUrl", "value": "${{ secrets.KEYCLOAK_URL }}"},
             {"key": "username", "value": "aboba"},
             {"key": "password", "value": "aboba"},
             {"key": "clientId", "value": "aboba"},
