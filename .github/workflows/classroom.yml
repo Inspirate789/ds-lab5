@@ -151,7 +151,7 @@ jobs:
 #        run: docker compose down --volumes
 
   push_images:
-    needs: [ publish_test_report ]
+    needs: [ unit_test ]
     name: Build and push images
     runs-on: ubuntu-latest
     steps:
