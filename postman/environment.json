@@ -9,7 +9,7 @@
   "values": [
     {
       "type": "any",
-      "value": "http://gateway.default.svc.cluster.local:80",
+      "value": "http://gateway.default.svc.cluster.local",
       "key": "baseUrl"
     },
     {

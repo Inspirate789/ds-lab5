@@ -4,6 +4,9 @@ set -e
 
 deployment=${1:-${DEPLOYMENT_NAME}}
 gateway_url=${2:-${GATEWAY_URL}}
+namespace=${3:-${NAMESPACE}}
+
+[[ -z $namespace ]] && namespace="default"
 
 path=$(dirname "$0")
 
@@ -35,7 +38,7 @@ step() {
 
   printf "=== Step %d: scale %s to %s ===\n" "$step" "$deployment" "$replicas"
 
-  kubectl scale deployment "$deployment" --replicas "$replicas" 
+  kubectl scale deployment "$deployment" -n "$namespace" --replicas "$replicas" 
 
   newman run \
     --delay-request=100 \
