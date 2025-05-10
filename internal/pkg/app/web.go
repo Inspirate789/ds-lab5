@@ -2,15 +2,19 @@ package app
 
 import (
 	"context"
-	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/pprof"
-	"github.com/gofiber/fiber/v2/middleware/recover"
-	"github.com/pkg/errors"
-	slogfiber "github.com/samber/slog-fiber"
+	"fmt"
 	"log/slog"
 	"net"
 	"net/http"
 	"strings"
+	"syscall"
+
+	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/pprof"
+	"github.com/gofiber/fiber/v2/middleware/recover"
+	"github.com/hashicorp/go-multierror"
+	"github.com/pkg/errors"
+	slogfiber "github.com/samber/slog-fiber"
 )
 
 type HealthChecker interface {
@@ -38,10 +42,11 @@ func newFiberError(msg string) fiber.Map {
 	return fiber.Map{"message": msg}
 }
 
-func checkReadiness(delivery HealthChecker) func(ctx *fiber.Ctx) error {
+func checkReadiness(delivery HealthChecker, logger *slog.Logger) func(ctx *fiber.Ctx) error {
 	return func(ctx *fiber.Ctx) error {
 		err := delivery.HealthCheck(ctx.UserContext())
 		if err != nil {
+			logger.Error(err.Error())
 			return ctx.Status(fiber.StatusServiceUnavailable).JSON(newFiberError(err.Error()))
 		}
 
@@ -49,19 +54,46 @@ func checkReadiness(delivery HealthChecker) func(ctx *fiber.Ctx) error {
 	}
 }
 
+func ExtractServiceUnavailableErr(err error) (error, bool) { // TODO: Check by error type
+	var DNSError *net.DNSError
+
+	if merr, ok := err.(*multierror.Error); ok {
+		fmt.Println(merr.Errors)
+		fmt.Printf("%T\n", merr.Errors[0])
+
+		if len(merr.Errors) == 0 {
+			return err, false
+		}
+
+		srcErr := merr.Errors[0]
+		if strings.Contains(strings.ToLower(srcErr.Error()), "service unavailable") ||
+			errors.As(srcErr, &DNSError) ||
+			errors.Is(srcErr, syscall.ECONNREFUSED) {
+			return srcErr, true
+		}
+	}
+
+	if strings.Contains(strings.ToLower(err.Error()), "service unavailable") ||
+		errors.As(err, &DNSError) ||
+		errors.Is(err, syscall.ECONNREFUSED) {
+		return err, true
+	}
+
+	return err, false
+}
+
 func NewFiberApp(config WebConfig, delivery Delivery, logger *slog.Logger) *FiberApp {
 	app := fiber.New(fiber.Config{
 		DisableStartupMessage: true,
 		ErrorHandler: func(ctx *fiber.Ctx, err error) error {
-			logger.Error(err.Error())
-			msg := strings.SplitN(err.Error(), ":", 2)[0]
+			logger.Error(err.Error(), slog.String("errorType", fmt.Sprintf("%T", err)))
 
-			var DNSError *net.DNSError
-			if errors.As(err, &DNSError) {
+			if err, ok := ExtractServiceUnavailableErr(err); ok {
+				msg := strings.SplitN(err.Error(), ":", 2)[0]
 				return ctx.Status(fiber.StatusServiceUnavailable).JSON(newFiberError(msg))
 			}
 
-			return ctx.Status(fiber.StatusInternalServerError).JSON(newFiberError(msg))
+			return ctx.Status(fiber.StatusInternalServerError).JSON(newFiberError(err.Error()))
 		},
 	})
 
@@ -69,7 +101,7 @@ func NewFiberApp(config WebConfig, delivery Delivery, logger *slog.Logger) *Fibe
 	app.Use(slogfiber.New(logger))
 	app.Use(pprof.New())
 
-	app.Get("/manage/health", checkReadiness(delivery))
+	app.Get("/manage/health", checkReadiness(delivery, logger))
 
 	delivery.AddHandlers(app.Group(config.PathPrefix))
 

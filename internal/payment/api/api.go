@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io"
 	"log/slog"
-	"net"
 	"net/http"
 	"strconv"
 	"time"
@@ -15,9 +14,9 @@ import (
 	"github.com/Inspirate789/ds-lab5/internal/models"
 	"github.com/Inspirate789/ds-lab5/internal/payment/delivery"
 	"github.com/Inspirate789/ds-lab5/internal/pkg/app"
+	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
 	"github.com/sony/gobreaker/v2"
-	"go.uber.org/multierr"
 )
 
 const ErrServiceUnavailable = "Payment Service unavailable"
@@ -69,7 +68,7 @@ func New(baseURL string, client *http.Client, backlog RequestBacklog, maxFails u
 
 func (api *PaymentsAPI) HealthCheck(ctx context.Context) (err error) {
 	defer func() {
-		err = multierr.Append(err, api.backlog.HealthCheck(ctx))
+		err = multierror.Append(err, api.backlog.HealthCheck(ctx)).ErrorOrNil()
 	}()
 
 	endpoint := api.baseURL + "/manage/health"
@@ -81,8 +80,7 @@ func (api *PaymentsAPI) HealthCheck(ctx context.Context) (err error) {
 
 	resp, err := api.client.Do(req)
 	if err != nil {
-		var DNSError *net.DNSError
-		if errors.As(err, &DNSError) {
+		if _, ok := app.ExtractServiceUnavailableErr(err); ok {
 			err = errors.Wrap(err, ErrServiceUnavailable)
 		}
 
@@ -100,7 +98,6 @@ func (api *PaymentsAPI) HealthCheck(ctx context.Context) (err error) {
 	}
 
 	return nil
-
 }
 
 func (api *PaymentsAPI) CreatePayment(ctx context.Context, price uint64) (res models.Payment, err error) {
@@ -113,12 +110,11 @@ func (api *PaymentsAPI) CreatePayment(ctx context.Context, price uint64) (res mo
 
 	resp, err := api.client.Do(req)
 	if err != nil {
-		var DNSError *net.DNSError
-		if errors.As(err, &DNSError) {
+		if _, ok := app.ExtractServiceUnavailableErr(err); ok {
 			err = errors.Wrap(err, ErrServiceUnavailable)
 		}
 
-		return models.Payment{}, multierr.Combine(err, api.backlog.Push(ctx, req))
+		return models.Payment{}, multierror.Append(err, api.backlog.Push(ctx, req)).ErrorOrNil()
 	}
 	defer resp.Body.Close()
 
@@ -151,12 +147,11 @@ func (api *PaymentsAPI) SetPaymentStatus(ctx context.Context, paymentUID string,
 
 	resp, err := api.client.Do(req)
 	if err != nil {
-		var DNSError *net.DNSError
-		if errors.As(err, &DNSError) {
+		if _, ok := app.ExtractServiceUnavailableErr(err); ok {
 			err = nil
 		}
 
-		return true, multierr.Combine(err, api.backlog.Push(ctx, req))
+		return true, multierror.Append(err, api.backlog.Push(ctx, req)).ErrorOrNil()
 	}
 	defer resp.Body.Close()
 
@@ -184,8 +179,7 @@ func (api *PaymentsAPI) getPayment(ctx context.Context, paymentUID string) (res 
 
 	resp, err := api.client.Do(req)
 	if err != nil {
-		var DNSError *net.DNSError
-		if errors.As(err, &DNSError) {
+		if _, ok := app.ExtractServiceUnavailableErr(err); ok {
 			err = errors.Wrap(err, ErrServiceUnavailable)
 		}
 

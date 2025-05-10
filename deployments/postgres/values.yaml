@@ -22,7 +22,5 @@ primary:
         psql -d rentals -c "GRANT ALL ON SCHEMA public TO program;"
         psql -d payments -c "GRANT ALL ON SCHEMA public TO program;"
 image:
-  registry: ds-labs.cr.cloud.ru
-  repository: postgres
   tag: 17.0.0-debian-12-r11
   debug: true

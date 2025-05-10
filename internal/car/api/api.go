@@ -6,16 +6,15 @@ import (
 	"fmt"
 	"io"
 	"log/slog"
-	"net"
 	"net/http"
 	"time"
 
 	"github.com/Inspirate789/ds-lab5/internal/car/delivery"
 	"github.com/Inspirate789/ds-lab5/internal/models"
 	"github.com/Inspirate789/ds-lab5/internal/pkg/app"
+	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
 	"github.com/sony/gobreaker/v2"
-	"go.uber.org/multierr"
 )
 
 const ErrServiceUnavailable = "Car Service unavailable"
@@ -83,7 +82,7 @@ func New(baseURL string, client *http.Client, backlog RequestBacklog, maxFails u
 
 func (api *CarsAPI) HealthCheck(ctx context.Context) (err error) {
 	defer func() {
-		err = multierr.Append(err, api.backlog.HealthCheck(ctx))
+		err = multierror.Append(err, api.backlog.HealthCheck(ctx)).ErrorOrNil()
 	}()
 
 	endpoint := api.baseURL + "/manage/health"
@@ -95,8 +94,7 @@ func (api *CarsAPI) HealthCheck(ctx context.Context) (err error) {
 
 	resp, err := api.client.Do(req)
 	if err != nil {
-		var DNSError *net.DNSError
-		if errors.As(err, &DNSError) {
+		if _, ok := app.ExtractServiceUnavailableErr(err); ok {
 			err = errors.Wrap(err, ErrServiceUnavailable)
 		}
 
@@ -114,7 +112,6 @@ func (api *CarsAPI) HealthCheck(ctx context.Context) (err error) {
 	}
 
 	return nil
-
 }
 
 func (api *CarsAPI) getCars(ctx context.Context, offset, limit uint64, showAll bool) (res []models.Car, totalCount uint64, err error) {
@@ -127,8 +124,7 @@ func (api *CarsAPI) getCars(ctx context.Context, offset, limit uint64, showAll b
 
 	resp, err := api.client.Do(req)
 	if err != nil {
-		var DNSError *net.DNSError
-		if errors.As(err, &DNSError) {
+		if _, ok := app.ExtractServiceUnavailableErr(err); ok {
 			err = errors.Wrap(err, ErrServiceUnavailable)
 		}
 
@@ -181,8 +177,7 @@ func (api *CarsAPI) getCar(ctx context.Context, carUID string) (res models.Car, 
 
 	resp, err := api.client.Do(req)
 	if err != nil {
-		var DNSError *net.DNSError
-		if errors.As(err, &DNSError) {
+		if _, ok := app.ExtractServiceUnavailableErr(err); ok {
 			err = errors.Wrap(err, ErrServiceUnavailable)
 		}
 
@@ -237,8 +232,7 @@ func (api *CarsAPI) LockCar(ctx context.Context, carUID string) (res models.Car,
 
 	resp, err := api.client.Do(req)
 	if err != nil {
-		var DNSError *net.DNSError
-		if errors.As(err, &DNSError) {
+		if _, ok := app.ExtractServiceUnavailableErr(err); ok {
 			err = errors.Wrap(err, ErrServiceUnavailable)
 		}
 
@@ -279,12 +273,11 @@ func (api *CarsAPI) UnlockCar(ctx context.Context, carUID string) (err error) {
 
 	resp, err := api.client.Do(req)
 	if err != nil {
-		var DNSError *net.DNSError
-		if errors.As(err, &DNSError) {
+		if _, ok := app.ExtractServiceUnavailableErr(err); ok {
 			err = errors.Wrap(err, ErrServiceUnavailable)
 		}
 
-		return multierr.Combine(err, api.backlog.Push(ctx, req))
+		return multierror.Append(err, api.backlog.Push(ctx, req)).ErrorOrNil()
 	}
 	defer resp.Body.Close()
 

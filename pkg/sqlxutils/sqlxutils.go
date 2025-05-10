@@ -3,9 +3,10 @@ package sqlxutils
 import (
 	"context"
 	"database/sql"
+
+	"github.com/hashicorp/go-multierror"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
-	"go.uber.org/multierr"
 )
 
 func sqlErr(err error, query string, args ...interface{}) error {
@@ -88,7 +89,7 @@ func RunTx(ctx context.Context, db txRunner, level sql.IsolationLevel, f txFunc)
 
 	defer func() {
 		if err != nil {
-			err = multierr.Combine(err, tx.Rollback())
+			err = multierror.Append(err, tx.Rollback()).ErrorOrNil()
 		} else {
 			err = tx.Commit()
 		}

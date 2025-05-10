@@ -2,7 +2,7 @@
 applicationName: retryer
 
 containerImage:
-  repository: ds-labs.cr.cloud.ru/ds-retryer
+  repository: inspirate789/ds-retryer
   tag: latest
   pullPolicy: Always
 

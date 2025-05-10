@@ -3,14 +3,15 @@ package retryer
 import (
 	"bytes"
 	"context"
-	"github.com/google/uuid"
-	"github.com/hashicorp/go-multierror"
-	"github.com/pkg/errors"
-	"github.com/segmentio/kafka-go"
 	"io"
 	"log/slog"
 	"net/http"
 	"time"
+
+	"github.com/google/uuid"
+	"github.com/hashicorp/go-multierror"
+	"github.com/pkg/errors"
+	"github.com/segmentio/kafka-go"
 )
 
 type BacklogError string
@@ -114,7 +115,7 @@ func (backlog *KafkaRequestBacklog) HandleRequest(ctx context.Context, do func(*
 
 	defer func() {
 		if err != nil {
-			err = multierror.Append(err, backlog.reader.SetOffset(msg.Offset))
+			err = multierror.Append(err, backlog.reader.SetOffset(msg.Offset)).ErrorOrNil()
 		}
 	}()
 

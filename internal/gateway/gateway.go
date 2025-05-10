@@ -14,7 +14,7 @@ import (
 	"github.com/Inspirate789/ds-lab5/internal/pkg/app"
 	rentalErrors "github.com/Inspirate789/ds-lab5/internal/rental/delivery/errors"
 	"github.com/gofiber/fiber/v2"
-	"go.uber.org/multierr"
+	"github.com/hashicorp/go-multierror"
 )
 
 type CarsAPI interface {
@@ -57,11 +57,11 @@ func New(carsAPI CarsAPI, rentalsAPI RentalsAPI, paymentsAPI PaymentsAPI, logger
 }
 
 func (gateway *Gateway) HealthCheck(ctx context.Context) error {
-	return multierr.Combine(
+	return multierror.Append(
 		gateway.carsAPI.HealthCheck(ctx),
 		gateway.rentalsAPI.HealthCheck(ctx),
 		gateway.paymentsAPI.HealthCheck(ctx),
-	)
+	).ErrorOrNil()
 }
 
 func (gateway *Gateway) AddHandlers(router fiber.Router) {
@@ -228,7 +228,7 @@ func (gateway *Gateway) startCarRental(ctx *fiber.Ctx) error {
 	defer func() {
 		if err != nil {
 			rollbackErr := gateway.carsAPI.UnlockCar(ctx.Context(), dto.CarUID)
-			err = multierr.Append(err, errors.ErrRollbackWrap(rollbackErr))
+			err = multierror.Append(err, errors.ErrRollbackWrap(rollbackErr)).ErrorOrNil()
 		}
 	}()
 
@@ -243,7 +243,7 @@ func (gateway *Gateway) startCarRental(ctx *fiber.Ctx) error {
 	defer func() {
 		if err != nil {
 			_, rollbackErr := gateway.paymentsAPI.SetPaymentStatus(ctx.Context(), payment.PaymentUID, models.PaymentCanceled)
-			err = multierr.Append(err, errors.ErrRollbackWrap(rollbackErr))
+			err = multierror.Append(err, errors.ErrRollbackWrap(rollbackErr)).ErrorOrNil()
 		}
 	}()
 
@@ -293,7 +293,7 @@ func (gateway *Gateway) cancelCarRental(ctx *fiber.Ctx) (err error) {
 	defer func() {
 		if err != nil {
 			_, rollbackErr := gateway.rentalsAPI.SetRentalStatus(ctx.Context(), rentalUID, models.RentalInProgress)
-			err = multierr.Append(err, errors.ErrRollbackWrap(rollbackErr))
+			err = multierror.Append(err, errors.ErrRollbackWrap(rollbackErr)).ErrorOrNil()
 		}
 	}()
 
@@ -308,7 +308,7 @@ func (gateway *Gateway) cancelCarRental(ctx *fiber.Ctx) (err error) {
 	defer func() {
 		if err != nil {
 			_, rollbackErr := gateway.paymentsAPI.SetPaymentStatus(ctx.Context(), rental.PaymentUID, models.PaymentPaid)
-			err = multierr.Append(err, errors.ErrRollbackWrap(rollbackErr))
+			err = multierror.Append(err, errors.ErrRollbackWrap(rollbackErr)).ErrorOrNil()
 		}
 	}()
 
