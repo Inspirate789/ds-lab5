@@ -148,14 +148,14 @@ jobs:
       - name: Test service URLs
         run: | 
           minikube service list
-          minikube service discover --url
+          minikube service gateway -n test --url
 
       - name: Add app URL to Postman environment
         uses: sergeysova/jq-action@v2
         id: version
         with:
           cmd: >-
-            jq '.values[0].value = "http://localhost:80"'
+            jq '.values[0].value = "$(minikube service gateway --url)"'
             < postman/environment.json > out.tmp &&
             mv out.tmp postman/environment.json
 
