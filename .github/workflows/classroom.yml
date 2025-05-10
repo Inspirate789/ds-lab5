@@ -127,6 +127,7 @@ jobs:
 
       - name: Deploy
         run: |
+          kubectl create namespace test
           helm upgrade postgres oci://registry-1.docker.io/bitnamicharts/postgresql -f deployments/postgres/values.yaml -n test --install --wait --atomic
           helm upgrade kafka oci://registry-1.docker.io/bitnamicharts/kafka -f deployments/kafka/values.yaml -n test --install --wait --atomic
           helm repo add gruntwork https://helmcharts.gruntwork.io
