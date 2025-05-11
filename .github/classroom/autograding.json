@@ -3,7 +3,7 @@
     {
       "name": "Run Test Script",
       "setup": "",
-      "run": "./scripts/test-script.sh payment-api $(minikube ip)/gateway test",
+      "run": "./scripts/test-script.sh payment-api $(minikube service gateway -n test --url) test",
       "input": "",
       "output": "",
       "comparison": "included",
